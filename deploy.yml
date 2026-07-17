@@ -1,0 +1,38 @@
+name: Deploy to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main # Triggers when code is pushed or merged directly into main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-key: '20' # Uses Node 20 LTS
+          cache: 'npm'   # Automatically caches your node_modules for faster builds
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build # Generates the static production build
+
+      - name: Publish to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets:CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets:CLOUDFLARE_ACCOUNT_ID }}
+          projectName: 'your-cloudflare-pages-project-name' # Replace with your actual Cloudflare Pages project name
+          directory: 'dist' # The folder where your framework outputs static files (Astro uses 'dist')
+          branch: 'main'
